@@ -6,6 +6,8 @@
 //  Copyright © 2016 Ludovic FRANCESCHINI. All rights reserved.
 //
 
+#define MPS_TO_MPH 2.23694f
+
 #import "WXCondition.h"
 
 @implementation WXCondition
@@ -26,6 +28,46 @@
              @"windBearing": @"wind.deg",
              @"windSpeed": @"wind.speed"
              };
+}
+
++ (NSValueTransformer *)dateJSONTransformer {
+    return [MTLValueTransformer reversibleTransformerWithForwardBlock:^(NSString *str) {
+        return [NSDate dateWithTimeIntervalSince1970:str.floatValue];
+    } reverseBlock:^(NSDate *date) {
+        return [NSString stringWithFormat:@"%f",[date timeIntervalSince1970]];
+    }];
+}
+
++ (NSValueTransformer *)conditionDescriptionJSONTransformer {
+    return [MTLValueTransformer reversibleTransformerWithForwardBlock:^(NSArray *values) {
+        return [values firstObject];
+    } reverseBlock:^(NSString *str) {
+        return @[str];
+    }];
+}
+
++ (NSValueTransformer *)windSpeedJSONTransformer {
+    return [MTLValueTransformer reversibleTransformerWithForwardBlock:^(NSNumber *num) {
+        return @(num.floatValue*MPS_TO_MPH);
+    } reverseBlock:^(NSNumber *speed) {
+        return @(speed.floatValue/MPS_TO_MPH);
+    }];
+}
+
++ (NSValueTransformer *)conditionJSONTransformer {
+    return [self conditionDescriptionJSONTransformer];
+}
+
++ (NSValueTransformer *)iconJSONTransformer {
+    return [self conditionDescriptionJSONTransformer];
+}
+
++ (NSValueTransformer *)sunriseJSONTransformer {
+    return [self dateJSONTransformer];
+}
+
++ (NSValueTransformer *)sunsetJSONTransformer {
+    return [self dateJSONTransformer];
 }
 
 + (NSDictionary *)imageMap {
